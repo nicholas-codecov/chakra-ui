@@ -43,13 +43,20 @@ export async function buildProject(options: BuildOptions) {
     //
   } else {
     //
-    const build = await rollup.rollup(config)
 
     const outputs: rollup.OutputOptions[] = Array.isArray(config.output)
       ? config.output
       : [config.output!]
 
-    await Promise.all(outputs.map((output) => build.write(output)))
+    await Promise.all(
+      outputs.map(async (output) => {
+        // we need to call getConfig again because we don't want the config to be shared
+        // between builds as it is leaking data between builds
+        const config = await getConfig({ dir, aliases })
+        const build = await rollup.rollup(config)
+        return build.write(output)
+      }),
+    )
 
     console.log(`[${name}][JS] Generated CJS and ESM files ✅`)
 

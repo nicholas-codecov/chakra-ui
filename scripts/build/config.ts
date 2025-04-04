@@ -1,3 +1,4 @@
+import { codecovRollupPlugin } from "@codecov/rollup-plugin"
 import alias, { Alias } from "@rollup/plugin-alias"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import replace from "@rollup/plugin-replace"
@@ -39,6 +40,15 @@ export async function getConfig(options: Options): Promise<RollupOptions> {
         }
       },
     },
+    // @ts-expect-error - @codecov/rollup-plugin has an underlying type issue
+    codecovRollupPlugin({
+      bundleName: packageJson.name,
+      // we want to always have this set to true as with forked uploads the token won't
+      // be present but will use a tokenless upload
+      enableBundleAnalysis: true,
+      uploadToken: process.env.CODECOV_TOKEN,
+      gitService: "github",
+    }),
   ]
 
   const deps = [
